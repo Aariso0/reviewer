@@ -3,7 +3,7 @@
 
 # reviewer
 
-[![CI](https://github.com/Aariso0/reviewer/actions/workflows/ci.yml/badge.svg)](https://github.com/Aariso0/reviewer/actions/workflows/ci.yml)
+[![CI](https://github.com/Aariso0/reviewer/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Aariso0/reviewer/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 
 Set up an AI pull-request reviewer on GitHub Actions from inside any git repository. `reviewer` writes three files, asks for an API key once, and leaves a workflow that posts one `COMMENT` review per pull request.

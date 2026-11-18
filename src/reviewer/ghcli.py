@@ -75,13 +75,16 @@ def repo_name(repo):
     return ""
 
 
-def set_secret(repo, name, value):
-    """Store a secret via stdin. Returns (ok, safe message)."""
+def set_secret(repo, name, value, cwd=None):
+    """Store a secret via stdin. Returns (ok, safe message).
+
+    `repo` is an owner/name string; `cwd` must be the local repository path.
+    """
     if not repo:
         return False, "no GitHub repository could be determined"
     if not gh_installed():
         return False, "gh is not installed"
-    code, _, _ = run([_GH, "secret", "set", name, "-R", repo], cwd=repo, input_text=value)
+    code, _, _ = run([_GH, "secret", "set", name, "-R", repo], cwd=cwd, input_text=value)
     if code == 0:
         return True, ""
     return False, "gh secret set failed with exit code {0}".format(code)

@@ -33,6 +33,21 @@ class SecretTest(unittest.TestCase):
         self.assertEqual(calls[0][1]["input_text"], "super-secret")
         self.assertNotIn("super-secret", " ".join(calls[0][0]))
 
+    def test_set_secret_uses_local_working_directory(self):
+        calls = []
+
+        def fake_run(args, **kwargs):
+            calls.append((args, kwargs))
+            return 0, "", ""
+
+        with mock.patch.object(ghcli, "gh_installed", return_value=True):
+            with mock.patch.object(ghcli, "run", side_effect=fake_run):
+                ok, message = ghcli.set_secret(
+                    "Aariso0/reviewer", "AI_REVIEW_API_KEY", "key", cwd="/work/repo"
+                )
+        self.assertTrue(ok, message)
+        self.assertEqual(calls[0][1].get("cwd"), "/work/repo")
+
     def test_set_secret_without_repo_or_gh(self):
         with mock.patch.object(ghcli, "gh_installed", return_value=False):
             ok, message = ghcli.set_secret("Aariso0/reviewer", "AI_REVIEW_API_KEY", "key")

@@ -173,7 +173,7 @@ class Wizard(object):
             self.manual.append("set " + defaults.SECRET_NAME + " in the GitHub repo settings")
             self.say("Manual: no GitHub repository could be determined; set the secret in GitHub settings.")
             return
-        ok, message = ghcli.set_secret(repo, defaults.SECRET_NAME, key)
+        ok, message = ghcli.set_secret(repo, defaults.SECRET_NAME, key, cwd=os.getcwd())
         if ok:
             self.say("Secret " + defaults.SECRET_NAME + " set for " + repo + ".")
         else:

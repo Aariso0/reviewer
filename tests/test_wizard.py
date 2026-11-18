@@ -45,8 +45,10 @@ class WizardTest(unittest.TestCase):
         ]
 
     def run_cli(self, argv, answers="", getpass_value="", env=None):
-        stack = [p.start() for p in self.patches()]
-        self.addCleanup(lambda: [p.stop() for p in reversed(stack)])
+        patchers = self.patches()
+        for patcher in patchers:
+            patcher.start()
+        self.addCleanup(lambda: [patcher.stop() for patcher in reversed(patchers)])
         stdin_patch = mock.patch("sys.stdin", io.StringIO(answers))
         stdin_patch.start()
         self.addCleanup(stdin_patch.stop)
@@ -85,6 +87,7 @@ class WizardTest(unittest.TestCase):
             self.assertIn("SPDX-License-Identifier: Apache-2.0", path.read_text(encoding="utf-8"))
         setter.assert_called_once()
         self.assertEqual(setter.call_args[0][2], "wizard-secret")
+        self.assertEqual(setter.call_args[1]["cwd"], self.repo)
         for relpath in defaults.GENERATED_PATHS:
             self.assertNotIn("wizard-secret", (Path(self.repo) / relpath).read_text(encoding="utf-8"))
         self.assertNotIn("wizard-secret", self.out.getvalue())

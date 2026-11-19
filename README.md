@@ -68,7 +68,7 @@ reviewer init --dry-run --yes --no-banner
 | `reviewer init --yes` | Accept defaults and overwrite generated files without asking. |
 | `reviewer init --no-banner` | Suppress the startup banner. |
 | `reviewer doctor` | Check Python, git, `gh`, login, remote, generated files and secret. |
-| `reviewer --version` | Print `reviewer 0.1.0`. |
+| `reviewer --version` | Print `reviewer 0.1.3`. |
 | `reviewer --help` | Print help. |
 
 Exit codes: `0` success, `1` setup or environment error, `2` command-line usage error.

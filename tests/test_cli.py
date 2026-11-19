@@ -12,7 +12,7 @@ from unittest import mock
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from reviewer import cli  # noqa: E402
+from reviewer import __version__, cli  # noqa: E402
 
 
 class CliTest(unittest.TestCase):
@@ -22,7 +22,7 @@ class CliTest(unittest.TestCase):
             with self.assertRaises(SystemExit) as raised:
                 cli.main(["--version"], stream=out)
         self.assertEqual(raised.exception.code, 0)
-        self.assertIn("reviewer 0.1.0", out.getvalue())
+        self.assertIn("reviewer " + __version__, out.getvalue())
 
     def test_help(self):
         out = io.StringIO()

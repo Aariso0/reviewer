@@ -97,6 +97,24 @@ class WizardTest(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertNotIn("r e v i e w e r", self.out.getvalue())
 
+    def test_confirm_prints_one_prompt(self):
+        with mock.patch.object(defaults, "load_defaults", return_value={}):
+            wizard_obj = cli.wizard.Wizard(yes=True, no_banner=True, stream=self.out)
+        with mock.patch("sys.stdin", io.StringIO("y\n")):
+            self.assertTrue(wizard_obj.confirm("Continue", False))
+        self.assertEqual(self.out.getvalue(), "Continue [y/N]: ")
+
+    def test_step_header_is_bold_on_tty(self):
+        class TTYOut(io.StringIO):
+            def isatty(self):
+                return True
+
+        with mock.patch.dict(os.environ, {}, clear=True):
+            with mock.patch.object(defaults, "load_defaults", return_value={}):
+                wizard_obj = cli.wizard.Wizard(stream=TTYOut())
+            wizard_obj._step(1, "Provider")
+        self.assertIn("\x1b[1;37m[1/9] Provider\x1b[0m", wizard_obj.out.getvalue())
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -7,7 +7,7 @@ import getpass
 import os
 import sys
 
-from . import defaults, files, ghcli
+from . import banner, defaults, files, ghcli
 
 
 class Cancelled(Exception):
@@ -66,12 +66,13 @@ class Wizard(object):
         return answer if answer else default
 
     def confirm(self, prompt, default=False):
-        suffix = " [Y/n]: " if default else " [y/N]: "
-        answer = self.ask(prompt + suffix, "y" if default else "n").lower()
-        return answer in ("y", "yes")
+        hint = "[Y/n]" if default else "[y/N]"
+        answer = self.ask(prompt + " " + hint).lower()
+        return answer in ("y", "yes") or (not answer and default)
 
     def _step(self, number, title):
-        self.say("[{0}/9] {1}".format(number, title))
+        self.say()
+        self.say(banner.emphasis("[{0}/9] {1}".format(number, title), self.no_banner, self.out))
 
     def choose_provider(self):
         self._step(1, "Provider")
@@ -205,7 +206,7 @@ class Wizard(object):
         os.chdir(root)
         self.say("Repository: " + root)
 
-        self.say("Preflight")
+        self.say(banner.emphasis("Preflight", self.no_banner, self.out))
         if not ghcli.gh_installed():
             self.say("Warning: gh is not installed; continuing in manual-secret mode.")
         elif not ghcli.auth_ok():

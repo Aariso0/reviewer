@@ -3,7 +3,7 @@
 
 # Changelog
 
-## 0.1.2
+## 0.1.3
 
 - Initial release.
 - `reviewer init` wizard with `--dry-run`, `--yes` and `--no-banner`.

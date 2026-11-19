@@ -73,7 +73,7 @@ reviewer init --dry-run --yes --no-banner
 
 Exit codes: `0` success, `1` setup or environment error, `2` command-line usage error.
 
-The banner is plain text only: no colour, no ANSI escapes, no emoji. It is shown only on a TTY unless suppressed by `--no-banner`, `REVIEWER_NO_BANNER` or `NO_COLOR`, and falls back to a one-line form on narrow terminals.
+The banner uses plain text and box drawing only: no emoji. Step headers are bold white on a TTY; output is completely plain when piped or when `--no-banner`, `REVIEWER_NO_BANNER` or `NO_COLOR` is set. The banner falls back to a one-line form on narrow terminals.
 
 ## 6. Generated files
 

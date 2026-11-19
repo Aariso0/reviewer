@@ -62,6 +62,18 @@ class BannerTest(unittest.TestCase):
         self.assertTrue(banner.print_banner("/repo", "0.1.0", False, stream))
         self.assertIn("r e v i e w e r", stream.getvalue())
 
+    def test_emphasis_respects_gates(self):
+        with mock.patch.dict(os.environ, {}, clear=True):
+            stream = TTYStream()
+            self.assertEqual(
+                banner.emphasis("[1/9] Provider", False, stream),
+                "\x1b[1;37m[1/9] Provider\x1b[0m",
+            )
+            self.assertEqual(banner.emphasis("[1/9] Provider", False, io.StringIO()), "[1/9] Provider")
+            self.assertEqual(banner.emphasis("[1/9] Provider", True, stream), "[1/9] Provider")
+            with mock.patch.dict(os.environ, {"NO_COLOR": "1"}):
+                self.assertEqual(banner.emphasis("[1/9] Provider", False, stream), "[1/9] Provider")
+
 
 if __name__ == "__main__":
     unittest.main()

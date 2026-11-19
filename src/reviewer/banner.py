@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Aariso0
 
-"""Plain startup banner. No colour, no animation, no escape sequences."""
+"""Startup banner and gated bold-white text emphasis."""
 
 import locale
 import os
@@ -10,6 +10,8 @@ import sys
 
 WIDTH = 52
 INNER = WIDTH - 4  # "| " + text + " |"
+BOLD_WHITE = "\033[1;37m"
+RESET = "\033[0m"
 
 
 def use_unicode(stream=None):
@@ -29,6 +31,13 @@ def should_show(no_banner=False, stream=None):
         return False
     stream = stream or sys.stdout
     return bool(getattr(stream, "isatty", lambda: False)())
+
+
+def emphasis(text, no_banner=False, stream=None):
+    """Wrap text in bold white only where decoration is allowed."""
+    if not should_show(no_banner, stream):
+        return text
+    return BOLD_WHITE + text + RESET
 
 
 def render(repo_path, version, no_banner=False, stream=None, columns=None):

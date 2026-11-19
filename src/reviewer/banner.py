@@ -12,7 +12,7 @@ WIDTH = 52
 INNER = WIDTH - 4  # "| " + text + " |"
 RESET = "\033[0m"
 STYLES = {
-    "title": "\033[1;36m",
+    "title": "\033[1;37m",
     "step": "\033[1;37m",
     "dim": "\033[2m",
     "skip": "\033[2m",
@@ -20,13 +20,6 @@ STYLES = {
     "warn": "\033[33m",
     "bad": "\033[31m",
 }
-WORDMARK = [
-    r"  ___  ___  __  __  _  ___  ___  ___ ",
-    r" | _ \| _ \ \ \/ / / \| _ \| _ \/ __|",
-    r" | __/| __/  >  < | __| __/| __/ \__ \ ",
-    r" |_|  |_|   /_/\_\|_| |_|  |_|  |___/",
-]
-
 
 def use_unicode(stream=None):
     """Choose box drawing only when the output encoding is UTF-8."""
@@ -79,12 +72,11 @@ def render(repo_path, version, no_banner=False, stream=None, columns=None):
     path = "repo: {0}".format(repo_path)
     if len(path) > INNER:
         path = path[: INNER - 3] + "..."
-    rows = [(row, "title") for row in WORDMARK]
-    rows.extend([
-        ("  AI pull request review for any repo", None),
+    rows = [
+        ("  Reviewer", "title"),
         ("  v{0}".format(version), None),
         ("  {0}".format(path), None),
-    ])
+    ]
     lines = [top]
     for text, tone in rows:
         padded = text.ljust(INNER)

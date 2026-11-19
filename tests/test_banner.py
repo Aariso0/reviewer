@@ -45,8 +45,8 @@ class BannerTest(unittest.TestCase):
         self.assertIn("+", text)
         self.assertNotIn("─", text)
         self.assertIn("repo: /repo", text)
-        self.assertIn("___  ___  __  __", text)
-        self.assertIn("\x1b[1;36m", text)
+        self.assertIn("Reviewer", text)
+        self.assertIn("\x1b[1;37m", text)
 
     def test_unicode_box(self):
         class UTF8Stream(TTYStream):
@@ -62,8 +62,8 @@ class BannerTest(unittest.TestCase):
     def test_print_banner(self):
         stream = TTYStream()
         self.assertTrue(banner.print_banner("/repo", "0.1.0", False, stream))
-        self.assertIn("___  ___  __  __", stream.getvalue())
-        self.assertIn("\x1b[1;36m", stream.getvalue())
+        self.assertIn("Reviewer", stream.getvalue())
+        self.assertIn("\x1b[1;37m", stream.getvalue())
 
     def test_style_respects_gates(self):
         with mock.patch.dict(os.environ, {}, clear=True):

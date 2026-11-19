@@ -3,6 +3,10 @@
 
 # Changelog
 
+## 0.1.5
+
+- Simplified the banner to a single bold-white `Reviewer` title.
+
 ## 0.1.4
 
 - Larger ASCII wordmark in the startup banner.

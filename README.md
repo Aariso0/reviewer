@@ -68,12 +68,12 @@ reviewer init --dry-run --yes --no-banner
 | `reviewer init --yes` | Accept defaults and overwrite generated files without asking. |
 | `reviewer init --no-banner` | Suppress the startup banner. |
 | `reviewer doctor` | Check Python, git, `gh`, login, remote, generated files and secret. |
-| `reviewer --version` | Print `reviewer 0.1.3`. |
+| `reviewer --version` | Print `reviewer 0.1.4`. |
 | `reviewer --help` | Print help. |
 
 Exit codes: `0` success, `1` setup or environment error, `2` command-line usage error.
 
-The banner uses plain text and box drawing only: no emoji. Step headers are bold white on a TTY; output is completely plain when piped or when `--no-banner`, `REVIEWER_NO_BANNER` or `NO_COLOR` is set. The banner falls back to a one-line form on narrow terminals.
+The banner shows an ASCII wordmark, and step headers use section rules, indented details and `[ok]` / `[!]` / `[skip]` status markers with subtle colour accents. No emoji are used. Everything is completely plain when piped or when `--no-banner`, `REVIEWER_NO_BANNER` or `NO_COLOR` is set. The banner falls back to a one-line form on narrow terminals.
 
 ## 6. Generated files
 

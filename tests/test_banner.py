@@ -40,11 +40,13 @@ class BannerTest(unittest.TestCase):
             self.assertTrue(banner.should_show(False, TTYStream()))
 
     def test_ascii_fallback(self):
-        text = banner.render("/repo", "0.1.0", False, PlainStream(), columns=80)
+        with mock.patch.dict(os.environ, {}, clear=True):
+            text = banner.render("/repo", "0.1.0", False, PlainStream(), columns=80)
         self.assertIn("+", text)
         self.assertNotIn("─", text)
-        self.assertNotIn("\x1b", text)
         self.assertIn("repo: /repo", text)
+        self.assertIn("___  ___  __  __", text)
+        self.assertIn("\x1b[1;36m", text)
 
     def test_unicode_box(self):
         class UTF8Stream(TTYStream):
@@ -60,19 +62,19 @@ class BannerTest(unittest.TestCase):
     def test_print_banner(self):
         stream = TTYStream()
         self.assertTrue(banner.print_banner("/repo", "0.1.0", False, stream))
-        self.assertIn("r e v i e w e r", stream.getvalue())
+        self.assertIn("___  ___  __  __", stream.getvalue())
+        self.assertIn("\x1b[1;36m", stream.getvalue())
 
-    def test_emphasis_respects_gates(self):
+    def test_style_respects_gates(self):
         with mock.patch.dict(os.environ, {}, clear=True):
             stream = TTYStream()
-            self.assertEqual(
-                banner.emphasis("[1/9] Provider", False, stream),
-                "\x1b[1;37m[1/9] Provider\x1b[0m",
-            )
-            self.assertEqual(banner.emphasis("[1/9] Provider", False, io.StringIO()), "[1/9] Provider")
-            self.assertEqual(banner.emphasis("[1/9] Provider", True, stream), "[1/9] Provider")
+            self.assertEqual(banner.style("X", "step", False, stream), "\x1b[1;37mX\x1b[0m")
+            self.assertEqual(banner.style("X", "ok", False, stream), "\x1b[32mX\x1b[0m")
+            self.assertEqual(banner.style("X", "bad", False, stream), "\x1b[31mX\x1b[0m")
+            self.assertEqual(banner.style("X", "step", False, io.StringIO()), "X")
+            self.assertEqual(banner.style("X", "step", True, stream), "X")
             with mock.patch.dict(os.environ, {"NO_COLOR": "1"}):
-                self.assertEqual(banner.emphasis("[1/9] Provider", False, stream), "[1/9] Provider")
+                self.assertEqual(banner.style("X", "step", False, stream), "X")
 
 
 if __name__ == "__main__":

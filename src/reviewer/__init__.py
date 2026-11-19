@@ -3,4 +3,4 @@
 
 """reviewer: set up an AI pull-request reviewer on GitHub Actions."""
 
-__version__ = "0.1.3"
+__version__ = "0.1.4"

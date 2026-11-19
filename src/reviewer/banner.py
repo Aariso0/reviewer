@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright 2026 Aariso0
 
-"""Startup banner and gated bold-white text emphasis."""
+"""Startup banner and gated terminal styling."""
 
 import locale
 import os
@@ -10,8 +10,22 @@ import sys
 
 WIDTH = 52
 INNER = WIDTH - 4  # "| " + text + " |"
-BOLD_WHITE = "\033[1;37m"
 RESET = "\033[0m"
+STYLES = {
+    "title": "\033[1;36m",
+    "step": "\033[1;37m",
+    "dim": "\033[2m",
+    "skip": "\033[2m",
+    "ok": "\033[32m",
+    "warn": "\033[33m",
+    "bad": "\033[31m",
+}
+WORDMARK = [
+    r"  ___  ___  __  __  _  ___  ___  ___ ",
+    r" | _ \| _ \ \ \/ / / \| _ \| _ \/ __|",
+    r" | __/| __/  >  < | __| __/| __/ \__ \ ",
+    r" |_|  |_|   /_/\_\|_| |_|  |_|  |___/",
+]
 
 
 def use_unicode(stream=None):
@@ -22,7 +36,7 @@ def use_unicode(stream=None):
 
 
 def should_show(no_banner=False, stream=None):
-    """Return True only when a banner should be printed."""
+    """Return True only when decoration should be printed."""
     if no_banner:
         return False
     if os.environ.get("REVIEWER_NO_BANNER") is not None:
@@ -33,11 +47,11 @@ def should_show(no_banner=False, stream=None):
     return bool(getattr(stream, "isatty", lambda: False)())
 
 
-def emphasis(text, no_banner=False, stream=None):
-    """Wrap text in bold white only where decoration is allowed."""
+def style(text, tone, no_banner=False, stream=None):
+    """Apply a terminal style only where decoration is allowed."""
     if not should_show(no_banner, stream):
-        return text
-    return BOLD_WHITE + text + RESET
+        return str(text)
+    return STYLES[tone] + str(text) + RESET
 
 
 def render(repo_path, version, no_banner=False, stream=None, columns=None):
@@ -65,15 +79,18 @@ def render(repo_path, version, no_banner=False, stream=None, columns=None):
     path = "repo: {0}".format(repo_path)
     if len(path) > INNER:
         path = path[: INNER - 3] + "..."
-    rows = [
-        "  r e v i e w e r",
-        "  AI pull request review for any repo",
-        "  v{0}".format(version),
-        "  {0}".format(path),
-    ]
+    rows = [(row, "title") for row in WORDMARK]
+    rows.extend([
+        ("  AI pull request review for any repo", None),
+        ("  v{0}".format(version), None),
+        ("  {0}".format(path), None),
+    ])
     lines = [top]
-    for row in rows:
-        lines.append(side + " " + row.ljust(INNER) + " " + side)
+    for text, tone in rows:
+        padded = text.ljust(INNER)
+        if tone:
+            padded = style(padded, tone, no_banner, stream)
+        lines.append(side + " " + padded + " " + side)
     lines.append(bottom)
     return "\n".join(lines) + "\n"
 

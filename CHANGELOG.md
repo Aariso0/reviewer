@@ -3,6 +3,13 @@
 
 # Changelog
 
+## 0.1.4
+
+- Larger ASCII wordmark in the startup banner.
+- Step headers with divider rules and indented detail lines.
+- `[ok]`, `[!]` and `[skip]` status markers with gated colour accents.
+- Version assertion in tests now reads `__version__` instead of a hardcoded string.
+
 ## 0.1.3
 
 - Initial release.

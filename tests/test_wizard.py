@@ -95,7 +95,7 @@ class WizardTest(unittest.TestCase):
     def test_no_tty_banner_suppressed_by_flag(self):
         code = self.run_cli(["init", "--dry-run", "--yes", "--no-banner"], answers="\n" * 8)
         self.assertEqual(code, 0)
-        self.assertNotIn("r e v i e w e r", self.out.getvalue())
+        self.assertNotIn("___  ___  __  __", self.out.getvalue())
 
     def test_confirm_prints_one_prompt(self):
         with mock.patch.object(defaults, "load_defaults", return_value={}):

@@ -52,6 +52,12 @@ class Wizard(object):
     def say(self, text=""):
         self.out.write(str(text) + "\n")
 
+    def detail(self, text=""):
+        self.say(banner.style("  " + str(text), "dim", self.no_banner, self.out))
+
+    def status(self, marker, text, tone):
+        self.say(banner.style(marker, tone, self.no_banner, self.out) + " " + str(text))
+
     def ask(self, prompt, default=""):
         shown = prompt + " [" + default + "]: " if default else prompt + ": "
         try:
@@ -72,7 +78,9 @@ class Wizard(object):
 
     def _step(self, number, title):
         self.say()
-        self.say(banner.emphasis("[{0}/9] {1}".format(number, title), self.no_banner, self.out))
+        heading = "[{0}/9] {1}".format(number, title)
+        self.say(banner.style(heading, "step", self.no_banner, self.out))
+        self.say(banner.style("  " + "-" * (len(heading) + 2), "dim", self.no_banner, self.out))
 
     def choose_provider(self):
         self._step(1, "Provider")
@@ -80,15 +88,15 @@ class Wizard(object):
         if default not in defaults.PROVIDERS:
             default = "gemini"
         while True:
-            self.say("Providers: " + ", ".join(defaults.PROVIDERS))
+            self.detail("Providers: " + ", ".join(defaults.PROVIDERS))
             provider = self.ask("Provider", default).lower()
             if provider in defaults.PROVIDERS:
                 break
-            self.say("Unknown provider. Choose one of: " + ", ".join(defaults.PROVIDERS))
+            self.status("[!]", "Unknown provider. Choose one of: " + ", ".join(defaults.PROVIDERS), "warn")
         info = defaults.PROVIDERS[provider]
-        self.say("Get a key: " + info["key_source"])
+        self.detail("Get a key: " + info["key_source"])
         if info["note"]:
-            self.say("Note: " + info["note"])
+            self.detail("Note: " + info["note"])
         return provider
 
     def choose_model(self, provider):
@@ -98,25 +106,25 @@ class Wizard(object):
             model = self.ask("Model", default)
             if model:
                 return model
-            self.say("A model name is required for this provider.")
+            self.status("[!]", "A model name is required for this provider.", "warn")
 
     def choose_base_url(self, provider):
         self._step(3, "Base URL")
         info = defaults.PROVIDERS[provider]
         if not info["base_url"]:
-            self.say("Base URL is fixed for this provider.")
+            self.detail("Base URL is fixed for this provider.")
             return ""
         default = self.saved.get("base_url") or info["base_url"]
-        self.say("Default: " + default)
+        self.detail("Default: " + default)
         if provider == "opencode":
-            self.say("UNVERIFIED: current docs show https://opencode.ai/inference/openai/v1 for Chat Completions.")
+            self.detail("UNVERIFIED: current docs show https://opencode.ai/inference/openai/v1 for Chat Completions.")
         return self.ask("Base URL", default)
 
     def choose_runner(self, provider, base_url):
         self._step(4, "Runner label")
         default = self.saved.get("runner") or "ubuntu-latest"
         if provider == "ollama" and "localhost" in base_url and default == "ubuntu-latest":
-            self.say("Warning: GitHub-hosted runners cannot reach localhost. Defaulting to self-hosted.")
+            self.status("[!]", "Warning: GitHub-hosted runners cannot reach localhost. Defaulting to self-hosted.", "warn")
             default = "self-hosted"
         return self.ask("Runner label", default)
 
@@ -124,17 +132,17 @@ class Wizard(object):
         self._step(5, "Extra review rules")
         default = self.saved.get("extra_instructions", "")
         if default:
-            self.say("Current: " + default)
+            self.detail("Current: " + default)
         return self.ask("One-line extra rules (Enter for none)", default)
 
     def choose_key(self):
         self._step(6, "API key")
         key = os.environ.get(defaults.SECRET_NAME, "").strip()
         if key:
-            self.say("Using " + defaults.SECRET_NAME + " from the environment.")
+            self.status("[ok]", "Using " + defaults.SECRET_NAME + " from the environment.", "ok")
             return key
         if self.dry_run:
-            self.say("Dry run: no API key needed.")
+            self.status("[skip]", "Dry run: no API key needed.", "skip")
             return ""
         saved_key = defaults.load_saved_key()
         if saved_key and self.confirm("Use the saved key", False):
@@ -146,41 +154,41 @@ class Wizard(object):
         if key and not saved_key and self.confirm("Save this key to ~/.config/reviewer/ (mode 600)", False):
             error = defaults.save_key(key)
             if error:
-                self.say("Could not save the key: " + error)
+                self.status("[!]", "Could not save the key: " + error, "bad")
         return key
 
     def confirm_unmarked(self, plan):
         unmarked = [row["path"] for row in plan if row["unmarked"]]
         if not unmarked:
             return True
-        self.say("Warning: these files lack the '" + defaults.MARKER + "' marker: " + ", ".join(unmarked))
+        self.status("[!]", "Warning: these files lack the '" + defaults.MARKER + "' marker: " + ", ".join(unmarked), "warn")
         if self.yes:
-            self.say("--yes supplied: overwriting.")
+            self.status("[ok]", "--yes supplied: overwriting.", "ok")
             return True
         return self.confirm("Overwrite these files", False)
 
     def handle_secret(self, key):
         self._step(9, "Repository secret")
         if self.dry_run:
-            self.say("Dry run: secret not set.")
+            self.status("[skip]", "Dry run: secret not set.", "skip")
             return
         if not key:
             self.manual.append("add " + defaults.SECRET_NAME + " as a repository secret")
-            self.say("Manual: " + defaults.SECRET_NAME + " was not provided.")
-            self.say("  gh secret set " + defaults.SECRET_NAME + " -R <owner/repo>")
+            self.status("[!]", "Manual: " + defaults.SECRET_NAME + " was not provided.", "warn")
+            self.detail("gh secret set " + defaults.SECRET_NAME + " -R <owner/repo>")
             return
         repo = ghcli.repo_name(os.getcwd())
         if not repo:
             self.manual.append("set " + defaults.SECRET_NAME + " in the GitHub repo settings")
-            self.say("Manual: no GitHub repository could be determined; set the secret in GitHub settings.")
+            self.status("[!]", "Manual: no GitHub repository could be determined; set the secret in GitHub settings.", "warn")
             return
         ok, message = ghcli.set_secret(repo, defaults.SECRET_NAME, key, cwd=os.getcwd())
         if ok:
-            self.say("Secret " + defaults.SECRET_NAME + " set for " + repo + ".")
+            self.status("[ok]", "Secret " + defaults.SECRET_NAME + " set for " + repo + ".", "ok")
         else:
             self.manual.append("set " + defaults.SECRET_NAME + " for " + repo)
-            self.say("Could not set the secret: " + message)
-            self.say("  gh secret set " + defaults.SECRET_NAME + " -R " + repo)
+            self.status("[!]", "Could not set the secret: " + message, "bad")
+            self.detail("gh secret set " + defaults.SECRET_NAME + " -R " + repo)
 
     def handle_git(self):
         if self.dry_run or not self.written:
@@ -191,13 +199,13 @@ class Wizard(object):
         ok, message = ghcli.commit_paths(os.getcwd(), self.written, "Add AI pull request review workflow")
         if not ok:
             self.manual.append("commit the generated files")
-            self.say("Could not commit: " + message)
+            self.status("[!]", "Could not commit: " + message, "bad")
             return
         if self.confirm("Push the commit", self.yes):
             ok, message = ghcli.push(os.getcwd())
             if not ok:
                 self.manual.append("push the commit")
-                self.say("Could not push: " + message)
+                self.status("[!]", "Could not push: " + message, "bad")
 
     def run(self):
         root = ghcli.repo_root()
@@ -206,13 +214,13 @@ class Wizard(object):
         os.chdir(root)
         self.say("Repository: " + root)
 
-        self.say(banner.emphasis("Preflight", self.no_banner, self.out))
+        self.say(banner.style("Preflight", "step", self.no_banner, self.out))
         if not ghcli.gh_installed():
-            self.say("Warning: gh is not installed; continuing in manual-secret mode.")
+            self.status("[!]", "Warning: gh is not installed; continuing in manual-secret mode.", "warn")
         elif not ghcli.auth_ok():
-            self.say("Warning: gh is not logged in; continuing in manual-secret mode.")
+            self.status("[!]", "Warning: gh is not logged in; continuing in manual-secret mode.", "warn")
         if not ghcli.has_github_remote(root):
-            self.say("Warning: no GitHub remote was found.")
+            self.status("[!]", "Warning: no GitHub remote was found.", "warn")
 
         try:
             provider = self.choose_provider()
@@ -237,10 +245,10 @@ class Wizard(object):
 
             self._step(8, "Write")
             if self.dry_run:
-                self.say("Dry run: no files were written.")
+                self.status("[skip]", "Dry run: no files were written.", "skip")
             else:
                 self.written = files.write_plan(root, plan)
-                self.say("Wrote " + str(len(self.written)) + " file(s).")
+                self.status("[ok]", "Wrote " + str(len(self.written)) + " file(s).", "ok")
 
             self.handle_secret(key)
             self.handle_git()
